@@ -1,93 +1,122 @@
-# Функция для безопасного ввода неотрицательного числа
+# === Импорты (если нужны) и функции ввода ===
 def get_non_negative_float(prompt):
     while True:
         try:
             value = float(input(prompt))
             if value < 0:
-                print("Ошибка: значение не может быть отрицательным. Попробуйте снова.")
+                print("❌ Ошибка: значение не может быть отрицательным. Попробуйте снова.")
                 continue
             return value
         except ValueError:
-            print("Ошибка: пожалуйста, введите корректное число.")
-
-# Функция для безопасного ввода целого неотрицательного числа
+            print("❌ Ошибка: пожалуйста, введите корректное число.")
 
 
-def get_non_negative_int(prompt):
+def get_positive_int(prompt):
     while True:
         try:
             value = int(input(prompt))
-            if value < 0:
-                print("Ошибка: значение не может быть отрицательным. Попробуйте снова.")
+            if value <= 0:
+                print("❌ Ошибка: значение должно быть больше нуля. Попробуйте снова.")
                 continue
             return value
         except ValueError:
-            print("Ошибка: пожалуйста, введите целое число.")
+            print("❌ Ошибка: пожалуйста, введите целое число.")
 
 
-# === Шаг 1: Запрос данных у пользователя ===
-print("=== Анализ покупок в интернет-магазине ===")
+# === Шаг 1: Запрос данных ===
+print("=" * 50)
+print("📊 СИСТЕМА АНАЛИЗА ПОКУПОК — ДЕТАЛЬНЫЙ ОТЧЁТ")
+print("=" * 50)
 
-# Общая сумма покупок (до скидок)
-total_sum = get_non_negative_float("Введите общую сумму покупок (в рублях): ")
+total_sum = get_non_negative_float("Введите общую сумму покупок (руб.): ")
+quantity = get_positive_int("Введите количество товаров: ")
+discount_percent = get_non_negative_float("Введите базовую скидку (%, 0–100): ")
 
-# Количество товаров (обязательно >= 1)
-while True:
-    quantity = get_non_negative_int("Введите количество товаров в корзине: ")
-    if quantity == 0:
-        print("Ошибка: количество товаров должно быть больше нуля.")
-        continue
-    break
-
-# Базовая скидка (в %)
-discount_percent = get_non_negative_float("Введите сумму скидки (в процентах): ")
+# Коррекция некорректной скидки
 if discount_percent > 100:
-    print("⚠️  Скидка не может быть больше 100% — устанавливаем 0%.")
+    print("⚠️  Скидка не может превышать 100%. Устанавливаем 0%.")
     discount_percent = 0
 
-
-# === Шаг 2: Расчёт базовых значений ===
-# Применяем указанную пользователем скидку (если есть)
+# === Шаг 2: Базовые расчёты ===
 discount_amount = total_sum * discount_percent / 100
-price_after_user_discount = total_sum - discount_amount
+price_after_base_discount = total_sum - discount_amount
+avg_price_per_item = total_sum / quantity
 
-# Средняя стоимость товара — по ИСХОДНОЙ сумме (так принято в таких задачах)
-avg_price = total_sum / quantity
+# === Шаг 3: Логика бонусов магазина ===
+# Доп. скидка 10% при итоге > 5000
+if price_after_base_discount > 5000:
+    additional_discount = price_after_base_discount * 0.10
+    final_sum = price_after_base_discount - additional_discount
+    status_bonus = "✅ Доп. скидка 10% применена"
+else:
+    additional_discount = 0.0
+    final_sum = price_after_base_discount
+    status_bonus = "❌ Доп. скидка не применена (нужно > 5000 руб.)"
 
-
-# === Шаг 3: Дополнительные условия магазина ===
-# Доп. скидка 10%, если итоговая сумма > 5000 руб.
-additional_discount = 0.0
-final_sum = price_after_user_discount
-
-if final_sum > 5000:
-    additional_discount = final_sum * 0.10
-    final_sum -= additional_discount
-
-# Бесплатная доставка, если товаров > 10
+# Бесплатная доставка при количестве > 10
 free_shipping = quantity > 10
 
+# === Шаг 4: Формирование отчёта ===
+print("\n" + "─" * 50)
+print("🧾 ДЕТАЛЬНЫЙ ЧЕК")
+print("─" * 50)
 
-# === Шаг 4: Вывод результатов ===
-print("\n--- Итоговый чек ---")
-print(f"Исходная сумма покупок: {total_sum:.2f} руб.")
-print(f"Базовая скидка ({discount_percent:.1f}%): -{discount_amount:.2f} руб.")
-print(f"Сумма после базовой скидки: {price_after_user_discount:.2f} руб.")
+print(f"🔹 Исходная сумма корзины:       {total_sum:10.2f} руб.")
+print(f"🔹 Базовая скидка ({discount_percent:.1f}%):      -{discount_amount:10.2f} руб.")
+print(f"🔹 Цена после базовой скидки:   {price_after_base_discount:10.2f} руб.")
 
 if additional_discount > 0:
-    print(f"Доп. скидка 10% (сумма > 5000): -{additional_discount:.2f} руб.")
-else:
-    print("Доп. скидка: не положена (сумма ≤ 5000 руб.)")
+    print(f"🔹 Доп. скидка 10% (за >5000):  -{additional_discount:10.2f} руб.")
 
-print(f"Итоговая к оплате: {final_sum:.2f} руб.")
-print(f"Средняя стоимость товара: {avg_price:.2f} руб.")
-print(f"Бесплатная доставка: {'✅ Да' if free_shipping else '❌ Нет'} (товаров: {quantity})")
+print(f"🔹 ИТОГО К ОПЛАТЕ:             {final_sum:10.2f} руб.")
 
-# --- Полезные подсказки ---
-print("\n--- Подсказки магазина ---")
+print("\n" + "─" * 50)
+print("📈 АНАЛИЗ КОРЗИНЫ")
+print("─" * 50)
+
+print(f"🔹 Количество товаров:           {quantity} шт.")
+print(f"🔹 Средняя стоимость товара:    {avg_price_per_item:10.2f} руб.")
+print(f"🔹 Бесплатная доставка:          {'✅ Да' if free_shipping else '❌ Нет'}")
+print(f"   → Условие: более 10 товаров")
+print(f"   → Вы имеете: {quantity} товаров")
+
+# === Шаг 5: Подсказки для пользователя ===
+print("\n" + "─" * 50)
+print("💡 РЕКОМЕНДАЦИИ ПО ОПТИМИЗАЦИИ")
+print("─" * 50)
+
 if not free_shipping:
-    needed_for_free = 11 - quantity
-    print(f"Чтобы получить бесплатную доставку, добавьте ещё {needed_for_free} товар(а/ов).")
-if final_sum < 5000:
-    needed_for_bonus = 5000 - final_sum
-    print(f"Чтобы получить доп. скидку 10%, потратьте ещё на {needed_for_bonus:.2f} руб.")
+    needed = 11 - quantity
+    print(f"• Чтобы получить бесплатную доставку:")
+    print(f"  → Добавьте ещё {needed} товар(а/ов) ✨")
+
+if not (price_after_base_discount > 5000):
+    needed = 5000 - price_after_base_discount
+    print(f"• Чтобы активировать доп. скидку 10%:")
+    print(f"  → Потратьте ещё на {needed:.2f} руб. 💰")
+
+# Доп. рекомендация по среднему чеку
+if avg_price_per_item < 500:
+    print(f"• Средняя стоимость товара низкая ({avg_price_per_item:.0f} руб.)")
+    print(f"  → Рассмотрите возможность добавить 1–2 более дорогих позиции 🛍️")
+
+# Итоговая оценка
+print("\n" + "─" * 50)
+print("🏆 ИТОГОВАЯ ОЦЕНКА СДЕЛКИ")
+print("─" * 50)
+
+discount_total_percent = (total_sum - final_sum) / total_sum * 100 if total_sum > 0 else 0
+print(f"🔹 Вы сэкономили: {total_sum - final_sum:.2f} руб. ({discount_total_percent:.1f}% от суммы)")
+
+if discount_total_percent > 15:
+    print("🔥 Отличная сделка! Вы максимально использовали бонусы магазина! 🎉")
+elif discount_total_percent > 8:
+    print("👍 Хорошая скидка — вы близки к максимальной выгоде!")
+elif discount_total_percent > 0:
+    print("✅ Скидка применена — стоит обратить внимание на рекомендации!")
+else:
+    print("ℹ️  Скидка не применена — добавьте 5000+ руб. для активации бонусов.")
+
+print("=" * 50)
+print("📄 Отчёт сгенерирован успешно.")
+print("=" * 50)
